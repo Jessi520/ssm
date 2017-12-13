@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:tx="http://www.springframework.org/schema/tx"
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="
+       http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+       http://www.springframework.org/schema/tx 
+       http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+       http://www.springframework.org/schema/mvc 
+       http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-3.2.xsd
+       http://www.springframework.org/schema/aop 
+       http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+
+     <!-- 配置数据源(连接池实现) -->
+	  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+	       <!-- 数据库驱动类名 -->
+	       <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+	       <!-- 连接字符串 -->
+	       <property name="url" value="jdbc:oracle:thin:@localhost:1521:orcl"/>
+	       <!-- 登录账号 -->
+	       <property name="username" value="scott"/>
+	       <!-- 登录口令 -->
+	       <property name="password" value="123456"/>
+	       <!-- 最大连接接数 -->
+	       <property name="maxActive" value="10"/>
+	       <!-- 最大空闲连接数 -->
+	       <property name="maxIdle" value="5"/>
+	       <!-- 初始连接数 -->
+	       <property name="initialSize" value="3"/>
+	       <!-- 最大等待时间 -->
+	       <property name="maxWait" value="3000"/>
+	  </bean>
+    
+      <!-- 配置会话工厂 -->
+      <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+           <!-- 给会话工厂注入数据源 -->
+           <property name="dataSource" ref="dataSource"></property>
+           <!-- 指定Mybatis配置文件的路径 -->
+           <property name="configLocation" value="classpath:Mybatis-config.xml"/>
+           <!-- 指定sql映射文件的路径 -->
+           <property name="mapperLocations">
+               <list>
+                   <value>classpath:com/sxt/mapper/*.xml</value>
+               </list>
+           </property>
+      </bean>
+  
+     <!-- 配置mapper扫描(会为指定的包下的所有接口自动生成出实现类的代理对象,且对象名和类同名，首字母小写) -->
+     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+          <!-- 注入会话工厂 -->
+          <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+          <!-- 指定要扫描的包名 -->
+          <property name="basePackage" value="com.sxt.dao"/>
+     </bean>
+  
+     <!-- 配置事务管理器 -->
+     <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+         <!-- 注入数据源 -->
+         <property name="dataSource" ref="dataSource"/>
+     </bean>
+  
+     <!-- 基于事务管理器来配置事务属性/策略 -->
+	  <tx:advice id="serviceAdvice" transaction-manager="txManager">
+	       <tx:attributes>
+	           <tx:method name="add*" propagation="REQUIRED"/>
+	           <tx:method name="modify*" propagation="REQUIRED"/>
+	           <tx:method name="remove*" propagation="REQUIRED"/>
+	           <tx:method name="update*" propagation="REQUIRED"/>
+	           <tx:method name="*" propagation="SUPPORTS" read-only="true"/>
+	       </tx:attributes>
+	  </tx:advice>
+	  
+	  <!-- 配置事务切面 -->
+	  <aop:config>
+	      <!-- 配置切入点 -->
+	      <aop:pointcut id="servicePointcut" expression="execution(* com.sxt.service.impl.*.*(..))" />
+	      <!-- 织入通知 -->
+	      <aop:advisor advice-ref="serviceAdvice" pointcut-ref="servicePointcut"/>
+	  </aop:config>
+  
+     <!-- 组件扫描-->
+    <context:component-scan base-package="com.sxt.service.impl"/> 
+
+</beans>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    
+    <!-- 配置Mybatis全局参数 -->
+
+    <!-- 自定义别名 -->
+	<typeAliases>
+	    <!-- 自动扫描此包下的所有类并为该类生成别名(和类同名，不区分大小写) -->
+	    <package name="com.sxt.entity"/>
+	</typeAliases>
+    
+</configuration>	
